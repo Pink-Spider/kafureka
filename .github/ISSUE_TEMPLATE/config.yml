@@ -1,0 +1,7 @@
+contact_links:
+  - name: 💬 General Questions
+    url: https://github.com/Pink-Spider/kafureka/discussions
+    about: Ask general questions or talk about ideas here.
+  - name: 📚 Documentation
+    url: https://pink-spider.github.io/kafureka-docs
+    about: Visit the official documentation site.

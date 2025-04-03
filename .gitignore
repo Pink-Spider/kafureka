@@ -1,0 +1,6 @@
+/.gradle/
+/.idea/
+/build/
+/kafureka-broker-sidecar/build/
+/kafureka-core/build/
+/kafureka-spring-starter/build/
