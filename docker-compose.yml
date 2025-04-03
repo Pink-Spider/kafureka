@@ -1,12 +1,23 @@
+version: '3.8'
 services:
-
-  zookeeper:
-    image: bitnami/zookeeper:3.8
-    container_name: zookeeper
+  eureka-server:
+    build:
+      context: .
+      dockerfile: examples/eureka-server/Dockerfile
     ports:
-      - "2181:2181"
+      - "8761:8761"
+
+  kafureka-sidecar:
+    build:
+      context: .
+      dockerfile: kafureka-broker-sidecar/Dockerfile
+    depends_on:
+      - eureka-server
+      - kafka
+    ports:
+      - "8081:8081"
     environment:
-      - ALLOW_ANONYMOUS_LOGIN=yes
+      - EUREKA_URL=http://eureka-server:8761/eureka/
 
   kafka:
     image: bitnami/kafka:3.6
@@ -22,35 +33,23 @@ services:
     depends_on:
       - zookeeper
 
-  eureka-server:
-    build:
-      context: .
-      dockerfile: examples/eureka-server/Dockerfile
-    container_name: eureka-server
+  zookeeper:
+    image: bitnami/zookeeper:3.8
+    container_name: zookeeper
     ports:
-      - "8761:8761"
-    depends_on:
-      - kafka
-
-  kafureka-sidecar:
-    build:
-      context: .
-      dockerfile: kafureka-broker-sidecar/Dockerfile
-    container_name: kafureka-sidecar
+      - "2181:2181"
     environment:
-      - KAFKA_PORT=9092
-      - EUREKA_URL=http://eureka-server:8761/eureka/
-    depends_on:
-      - eureka-server
-      - kafka
+      - ALLOW_ANONYMOUS_LOGIN=yes
 
   producer:
     build:
       context: .
       dockerfile: examples/producer-example/Dockerfile
-    container_name: kafureka-producer
     depends_on:
+      - kafka
       - kafureka-sidecar
+    ports:
+      - "8082:8082"
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
 
@@ -58,8 +57,10 @@ services:
     build:
       context: .
       dockerfile: examples/consumer-example/Dockerfile
-    container_name: kafureka-consumer
     depends_on:
+      - kafka
       - kafureka-sidecar
+    ports:
+      - "8083:8083"
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
