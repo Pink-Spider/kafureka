@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+
+  zookeeper:
+    image: bitnami/zookeeper:3.8
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+
+  kafka:
+    image: bitnami/kafka:3.6
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    depends_on:
+      - zookeeper
+
+  eureka-server:
+    build:
+      context: .
+      dockerfile: examples/eureka-server/Dockerfile
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    depends_on:
+      - kafka
+
+  kafureka-sidecar:
+    build:
+      context: .
+      dockerfile: kafureka-broker-sidecar/Dockerfile
+    container_name: kafureka-sidecar
+    environment:
+      - KAFKA_PORT=9092
+      - EUREKA_URL=http://eureka-server:8761/eureka/
+    depends_on:
+      - eureka-server
+      - kafka
+
+  producer:
+    build:
+      context: .
+      dockerfile: examples/producer-example/Dockerfile
+    container_name: kafureka-producer
+    depends_on:
+      - kafureka-sidecar
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+
+  consumer:
+    build:
+      context: .
+      dockerfile: examples/consumer-example/Dockerfile
+    container_name: kafureka-consumer
+    depends_on:
+      - kafureka-sidecar
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/

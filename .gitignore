@@ -4,3 +4,7 @@
 /kafureka-broker-sidecar/build/
 /kafureka-core/build/
 /kafureka-spring-starter/build/
+/examples/build/
+/examples/consumer-example/build/
+/examples/eureka-server/build/
+/examples/producer-example/build/
