@@ -1,0 +1,20 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: consumer
+  kafka:
+    bootstrap-servers: kafka-broker-from-eureka:9092 # placeholder, resolved by Kafureka
+    consumer:
+      group-id: kafureka-consumer
+      auto-offset-reset: earliest
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
+  instance:
+    prefer-ip-address: true
